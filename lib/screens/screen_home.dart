@@ -10,8 +10,8 @@ class ScreenHome extends StatefulWidget {
   State<ScreenHome> createState() => _ScreenHomeState();
 }
 
-AddButtonMode addButtonMode = AddButtonMode.add;
 int? indexToUpdate;
+ValueNotifier<AddButtonMode> buttonMode = ValueNotifier(AddButtonMode.add);
 
 class _ScreenHomeState extends State<ScreenHome> {
   late final TextEditingController _taskNameController;
@@ -32,7 +32,6 @@ class _ScreenHomeState extends State<ScreenHome> {
   @override
   void dispose() {
     _taskNameController.dispose();
-
     _descriptionController.dispose();
     _taskNameNode.dispose();
     _descriptionNode.dispose();
@@ -40,11 +39,19 @@ class _ScreenHomeState extends State<ScreenHome> {
     super.dispose();
   }
 
-  void bringTaskToupdate(TodoModel todo, int index) async {
+  void bringTaskToupdate(TodoModel todo, int index) {
     _taskNameController.text = todo.taskName;
     _descriptionController.text = todo.description;
     indexToUpdate = index;
-    addButtonMode = AddButtonMode.edit; //enum
+    buttonMode.value = AddButtonMode.edit;
+    buttonMode.notifyListeners();
+  }
+
+  void deleteTask() {
+    _taskNameController.clear();
+    _descriptionController.clear();
+    buttonMode.value = AddButtonMode.add;
+    buttonMode.notifyListeners();
   }
 
   @override
@@ -62,9 +69,13 @@ class _ScreenHomeState extends State<ScreenHome> {
               taskNameNode: _taskNameNode,
               descriptionNode: _descriptionNode,
             ),
-            Expanded(child: ListTodoWidget(
+            Expanded(
+                child: ListTodoWidget(
               callback: (todo1, index) {
                 bringTaskToupdate(todo1, index);
+              },
+              deleteCallback: () {
+                deleteTask();
               },
             ))
           ],

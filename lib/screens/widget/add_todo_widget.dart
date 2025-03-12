@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:database_hive/database/function/db_functions.dart';
 import 'package:database_hive/database/model/todo_model.dart';
 import 'package:database_hive/screens/screen_home.dart';
@@ -73,7 +75,7 @@ class AddTodoWidget extends StatelessWidget {
                             Colors.white38,
                           )),
                       onPressed: () async {
-                        if (addButtonMode == AddButtonMode.add) {
+                        if (buttonMode.value == AddButtonMode.add) {
                           final todotask = TodoModel(
                               taskName: taskNameController.text.trim(),
                               description: descriptionController.text.trim(),
@@ -83,6 +85,7 @@ class AddTodoWidget extends StatelessWidget {
                               todotask.description == "") {
                             return;
                           } else {
+                            log(todotask.toString(), name: "Task to add");
                             await dbFunctions.addTask(
                                 todotask.taskName, todotask.description);
                           }
@@ -90,6 +93,8 @@ class AddTodoWidget extends StatelessWidget {
                           taskNameController.clear();
                           descriptionController.clear();
                         } else {
+                          buttonMode.value = AddButtonMode.add;
+                          buttonMode.notifyListeners();
                           final todotask = TodoModel(
                               taskName: taskNameController.text.trim(),
                               description: descriptionController.text.trim(),
@@ -108,13 +113,18 @@ class AddTodoWidget extends StatelessWidget {
                         taskNameNode.unfocus();
                         descriptionNode.unfocus();
                       },
-                      child: const Text(
-                        "Add",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                        ),
-                      )),
+                      child: ValueListenableBuilder(
+                          valueListenable: buttonMode,
+                          builder: (BuildContext content, AddButtonMode mode,
+                              Widget? _) {
+                            return Text(
+                              mode.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                            );
+                          })),
                 ],
               )
             ],
