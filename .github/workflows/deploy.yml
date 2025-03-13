@@ -1,0 +1,70 @@
+name: Deploy Flutter App to Play Store
+
+on:
+  push:
+    branches:
+      - master # Change this to your main branch
+
+jobs:
+  build:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'  # Use your Flutter version
+
+      - name: Decode and Save Keystore
+        run: echo "${{ secrets.KEYSTORE_KEY }}" | base64 --decode > android/app/release-key.jks
+
+      - name: Decode and Save Service Account JSON
+        run: echo "${{ secrets.SERVICE_ACCOUNT_JSON }}" | base64 --decode > service-account.json
+
+      - name: Set up Java environment
+        uses: actions/setup-java@v3
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK/AAB
+        run: |
+          flutter build appbundle --release \
+            --build-name=1.0.0 --build-number=$GITHUB_RUN_NUMBER
+      - name: Debug GitHub Run Number
+        run: |
+          echo "GitHub Run Number: $GITHUB_RUN_NUMBER"
+          
+
+      - name: Sign APK/AAB
+        run: |
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore android/app/release-key.jks \
+            -storepass ${{ secrets.KEYSTORE_PASSWORD }} \
+            -keypass ${{ secrets.KEY_PASSWORD }} \
+            android/app/build/outputs/bundle/release/app-release.aab \
+            ${{ secrets.KEY_ALIAS }}
+
+      - name: Install Google Cloud SDK
+        run: |
+          curl -sSL https://sdk.cloud.google.com | bash
+          echo "$HOME/google-cloud-sdk/bin" >> $GITHUB_PATH
+          gcloud --quiet components install beta
+
+      - name: Authenticate with Google Cloud
+        run: gcloud auth activate-service-account --key-file=service-account.json
+
+      - name: Upload AAB to Google Play
+        run: |
+          gcloud beta firebase appdistribution:upload \
+            android/app/build/outputs/bundle/release/app-release.aab \
+            --app <your-app-id> \
+            --release-notes "New release" \
+            --groups testers
