@@ -11,7 +11,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.database_hive"
+    namespace = "com.todolist.database_hive"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
