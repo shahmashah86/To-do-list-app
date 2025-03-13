@@ -23,7 +23,8 @@ class AddTodoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return // Text("hii")
         SizedBox(
-      width: 550,
+      width: double.infinity
+      ,
       height: 270,
       child: Card(
         color: const Color.fromARGB(255, 136, 196, 245),
