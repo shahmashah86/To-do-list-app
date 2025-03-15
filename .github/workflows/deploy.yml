@@ -84,5 +84,5 @@ jobs:
         serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
         packageName: "com.app.todo_list_app"  # Change to your package name
         releaseFiles: build/app/outputs/bundle/release/app-release.aab
-        track: internal
-        status: draft
+        track: closed
+        status: completed
